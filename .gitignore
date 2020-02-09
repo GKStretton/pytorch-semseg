@@ -11,6 +11,7 @@ video_test*.py
 *.swp
 data
 ckpt
+runs
 
 # C extensions
 *.so
