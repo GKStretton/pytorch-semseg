@@ -43,11 +43,12 @@ def train(cfg, writer, logger):
 
     t_loader = data_loader(
         data_path,
-        sbd_path=cfg["data"]["sbd_path"],
+        #sbd_path=None,#cfg["data"]["sbd_path"],
         is_transform=True,
         split=cfg["data"]["train_split"],
         img_size=(cfg["data"]["img_rows"], cfg["data"]["img_cols"]),
         augmentations=data_aug,
+        mode=cfg["data"]["mode"]
     )
 
     v_loader = data_loader(
@@ -55,6 +56,7 @@ def train(cfg, writer, logger):
         is_transform=True,
         split=cfg["data"]["val_split"],
         img_size=(cfg["data"]["img_rows"], cfg["data"]["img_cols"]),
+        mode=cfg["data"]["mode"]
     )
 
     n_classes = t_loader.n_classes

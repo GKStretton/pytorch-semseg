@@ -20,82 +20,94 @@ except:
 
 def test(args):
 
+    base = "/home2/bpch28/datasets/rootset"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model_file_name = os.path.split(args.model_path)[1]
     model_name = model_file_name[: model_file_name.find("_")]
 
     # Setup image
-    print("Read Input Image from : {}".format(args.img_path))
-    img = misc.imread(args.img_path)
+    img_paths = []
+    with open(args.imgs, 'r') as f:
+        img_paths = f.readlines()
+        for i in range(len(img_paths)):
+            img_paths[i] = img_paths[i][:-1]
 
-    data_loader = get_loader(args.dataset)
-    loader = data_loader(root=None, is_transform=True, img_norm=args.img_norm, test_mode=True)
-    n_classes = loader.n_classes
+    for img_path in img_paths:
+        print("Read Input Image from : {}".format(base + "/images/" + img_path))
+        img = misc.imread(base + "/images/" + img_path)
 
-    resized_img = misc.imresize(img, (loader.img_size[0], loader.img_size[1]), interp="bicubic")
+        data_loader = get_loader(args.dataset)
+        loader = data_loader(root=base, mode="multi", is_transform=True, img_norm=args.img_norm, test_mode=True)
+        n_classes = loader.n_classes
+        print(n_classes, "CLASSES")
 
-    orig_size = img.shape[:-1]
-    if model_name in ["pspnet", "icnet", "icnetBN"]:
-        # uint8 with RGB mode, resize width and height which are odd numbers
+        #resized_img = misc.imresize(img, (loader.img_size[0], loader.img_size[1]), interp="bicubic")
+
+        orig_size = img.shape[:-1]
+        #if model_name in ["pspnet", "icnet", "icnetBN", "root"]:
+            # uint8 with RGB mode, resize width and height which are odd numbers
         img = misc.imresize(img, (orig_size[0] // 2 * 2 + 1, orig_size[1] // 2 * 2 + 1))
-    else:
-        img = misc.imresize(img, (loader.img_size[0], loader.img_size[1]))
+        #else:
+        #    img = misc.imresize(img, (loader.img_size[0], loader.img_size[1]))
 
-    img = img[:, :, ::-1]
-    img = img.astype(np.float64)
-    img -= loader.mean
-    if args.img_norm:
-        img = img.astype(float) / 255.0
+        img = img[:, :, ::-1]
+        img = img.astype(np.float64)
+        img -= loader.mean
+        if args.img_norm:
+            img = img.astype(float) / 255.0
 
-    # NHWC -> NCHW
-    img = img.transpose(2, 0, 1)
-    img = np.expand_dims(img, 0)
-    img = torch.from_numpy(img).float()
+        # NHWC -> NCHW
+        img = img.transpose(2, 0, 1)
+        img = np.expand_dims(img, 0)
+        img = torch.from_numpy(img).float()
 
-    # Setup Model
-    model_dict = {"arch": model_name}
-    model = get_model(model_dict, n_classes, version=args.dataset)
-    state = convert_state_dict(torch.load(args.model_path)["model_state"])
-    model.load_state_dict(state)
-    model.eval()
-    model.to(device)
+        # Setup Model
+        model_dict = {"arch": model_name}
+        model = get_model(model_dict, n_classes, version=args.dataset)
+        state = convert_state_dict(torch.load(args.model_path)["model_state"])
+        model.load_state_dict(state)
+        model.eval()
+        model.to(device)
 
-    images = img.to(device)
-    outputs = model(images)
+        images = img.to(device)
+        outputs = model(images)
 
-    if args.dcrf:
-        unary = outputs.data.cpu().numpy()
-        unary = np.squeeze(unary, 0)
-        unary = -np.log(unary)
-        unary = unary.transpose(2, 1, 0)
-        w, h, c = unary.shape
-        unary = unary.transpose(2, 0, 1).reshape(loader.n_classes, -1)
-        unary = np.ascontiguousarray(unary)
+        if args.dcrf:
+            unary = outputs.data.cpu().numpy()
+            unary = np.squeeze(unary, 0)
+            unary = -np.log(unary)
+            unary = unary.transpose(2, 1, 0)
+            w, h, c = unary.shape
+            unary = unary.transpose(2, 0, 1).reshape(loader.n_classes, -1)
+            unary = np.ascontiguousarray(unary)
 
-        resized_img = np.ascontiguousarray(resized_img)
+            resized_img = np.ascontiguousarray(resized_img)
 
-        d = dcrf.DenseCRF2D(w, h, loader.n_classes)
-        d.setUnaryEnergy(unary)
-        d.addPairwiseBilateral(sxy=5, srgb=3, rgbim=resized_img, compat=1)
+            d = dcrf.DenseCRF2D(w, h, loader.n_classes)
+            d.setUnaryEnergy(unary)
+            d.addPairwiseBilateral(sxy=5, srgb=3, rgbim=resized_img, compat=1)
 
-        q = d.inference(50)
-        mask = np.argmax(q, axis=0).reshape(w, h).transpose(1, 0)
-        decoded_crf = loader.decode_segmap(np.array(mask, dtype=np.uint8))
-        dcrf_path = args.out_path[:-4] + "_drf.png"
-        misc.imsave(dcrf_path, decoded_crf)
-        print("Dense CRF Processed Mask Saved at: {}".format(dcrf_path))
+            q = d.inference(50)
+            mask = np.argmax(q, axis=0).reshape(w, h).transpose(1, 0)
+            decoded_crf = loader.decode_segmap(np.array(mask, dtype=np.uint8))
+            dcrf_path = args.out_path[:-4] + "_drf.png"
+            misc.imsave(dcrf_path, decoded_crf)
+            print("Dense CRF Processed Mask Saved at: {}".format(dcrf_path))
 
-    pred = np.squeeze(outputs.data.max(1)[1].cpu().numpy(), axis=0)
-    if model_name in ["pspnet", "icnet", "icnetBN"]:
-        pred = pred.astype(np.float32)
-        # float32 with F mode, resize back to orig_size
-        pred = misc.imresize(pred, orig_size, "nearest", mode="F")
+        pred = np.squeeze(outputs.data.max(1)[1].cpu().numpy(), axis=0)
+        if model_name in ["pspnet", "icnet", "icnetBN"]:
+            pred = pred.astype(np.float32)
+            # float32 with F mode, resize back to orig_size
+            pred = misc.imresize(pred, orig_size, "nearest", mode="F")
 
-    decoded = loader.decode_segmap(pred)
-    print("Classes found: ", np.unique(pred))
-    misc.imsave(args.out_path, decoded)
-    print("Segmentation Mask Saved at: {}".format(args.out_path))
+        decoded = loader.decode_segmap(pred)
+        origimg = misc.imread(base + "/images/" + img_path)
+        print(origimg.shape, decoded.shape)
+        stack = np.hstack((origimg, decoded[:origimg.shape[0],:origimg.shape[1]]*255))
+        print("Classes found: ", np.unique(pred))
+        misc.imsave("output/" + img_path, stack)
+        print("Segmentation Mask Saved at: {}".format("output/" + img_path[:-4]))
 
 
 if __name__ == "__main__":
@@ -148,7 +160,7 @@ if __name__ == "__main__":
     parser.set_defaults(dcrf=False)
 
     parser.add_argument(
-        "--img_path", nargs="?", type=str, default=None, help="Path of the input image"
+        "--imgs", nargs="?", type=str, default=None, help="Path of the input image"
     )
     parser.add_argument(
         "--out_path", nargs="?", type=str, default=None, help="Path of the output segmap"

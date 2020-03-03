@@ -10,28 +10,57 @@ from torch.utils import data
 
 
 class rootLoader(data.Dataset):
-    def __init__( self, root, split="train", is_transform=False, img_size=None, augmentations=None, img_norm=True, test_mode=False,):
+    def __init__(self, root, split="train", mode="foreback", is_transform=False, img_size=None, augmentations=None, img_norm=True, test_mode=False,):
         self.root = root
         self.split = split
-        #self.img_size = [360, 480]
         self.is_transform = is_transform
         self.augmentations = augmentations
         self.img_norm = img_norm
         self.test_mode = test_mode
         self.mean = np.array([122.34146, 132.07745, 131.84017])
-        self.n_classes = 2
         self.files = collections.defaultdict(list)
+        if mode == "foreback":
+            self.n_classes = 2
+        elif mode == "multi":
+            self.n_classes = 5
 
-        file_list = os.listdir(root + "/images")
-        self.files[split] = file_list
+        self.files = self.get_files(root, split)
+
+    def get_files(self, root, split):
+        files = []
+        with open(root + "/" + split, 'r') as f:
+            line = f.readline()
+            while len(line) >= 5:
+                files.append(line[:-1])
+                line = f.readline()
+        return files
+
+    def decode_segmap(self, label_mask):
+        label_colours = np.asarray([[0, 0, 0], [0, 255, 0], [255, 0, 0], [0, 0, 255], [255, 255, 255]])
+        r = label_mask.copy()
+        g = label_mask.copy()
+        b = label_mask.copy()
+        for l in range(0, self.n_classes):
+            r[label_mask == l] = label_colours[l, 0]
+            g[label_mask == l] = label_colours[l, 1]
+            b[label_mask == l] = label_colours[l, 2]
+        rgb = np.zeros((label_mask.shape[0], label_mask.shape[1], 3))
+        rgb[:, :, 0] = r / 255.0
+        rgb[:, :, 1] = g / 255.0
+        rgb[:, :, 2] = b / 255.0
+        return rgb
+
 
     def __len__(self):
-        return len(self.files[self.split])
+        return len(self.files)
 
     def __getitem__(self, index):
-        img_name = self.files[self.split][index]
+        img_name = self.files[index]
         img_path = self.root + "/images/" + img_name
-        lbl_path = self.root + "/segmentation8/" + img_name
+        if self.n_classes == 2:
+            lbl_path = self.root + "/segmentation8/" + img_name
+        elif self.n_classes == 5:
+            lbl_path = self.root + "/combined/" + img_name
 
         img = m.imread(img_path)
         img = np.array(img, dtype=np.uint8)
@@ -39,7 +68,8 @@ class rootLoader(data.Dataset):
         lbl = m.imread(lbl_path)
         lbl = np.array(lbl, dtype=np.int8)
         # Turn from 0 & -1 to 0 & 1
-        lbl[lbl == -1] = 1
+        if self.n_classes == 2:
+            lbl[lbl == -1] = 1
 
         if self.augmentations is not None:
             img, lbl = self.augmentations(img, lbl)

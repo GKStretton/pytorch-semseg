@@ -7,11 +7,10 @@ data:
     img_rows: 'same'
     img_cols: 'same'
     path: /home2/bpch28/datasets/rootset
-    mode: multi
 training:
     train_iters: 300000
     batch_size: 1
-    val_interval: 2000
+    val_interval: 1000
     n_workers: 1
     print_interval: 50
     optimizer:

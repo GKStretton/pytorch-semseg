@@ -32,7 +32,7 @@ def validate(cfg, args):
 
     n_classes = loader.n_classes
 
-    valloader = data.DataLoader(loader, batch_size=cfg["training"]["batch_size"], num_workers=8)
+    valloader = data.DataLoader(loader, batch_size=cfg["training"]["batch_size"], num_workers=1)
     running_metrics = runningScore(n_classes)
 
     # Setup Model
