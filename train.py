@@ -1,4 +1,5 @@
 import os
+import logging
 import yaml
 import time
 import shutil
@@ -22,7 +23,7 @@ from ptsemseg.optimizers import get_optimizer
 from tensorboardX import SummaryWriter
 
 
-def train(cfg, writer, logger):
+def train(cfg, writer, logger, statslogger):
 
     # Setup seeds
     torch.manual_seed(cfg.get("seed", 1337))
@@ -170,16 +171,21 @@ def train(cfg, writer, logger):
 
                 writer.add_scalar("loss/val_loss", val_loss_meter.avg, i + 1)
                 logger.info("Iter %d Loss: %.4f" % (i + 1, val_loss_meter.avg))
+                statslogger.info("")
+                statslogger.info("Iter %d"% (i+1))
 
                 score, class_iou = running_metrics_val.get_scores()
                 for k, v in score.items():
                     print(k, v)
+                    statslogger.info("{}:{}".format(k,v))
                     logger.info("{}: {}".format(k, v))
                     writer.add_scalar("val_metrics/{}".format(k), v, i + 1)
 
                 for k, v in class_iou.items():
+                    statslogger.info("{}:{}".format(k,v))
                     logger.info("{}: {}".format(k, v))
                     writer.add_scalar("val_metrics/cls_{}".format(k), v, i + 1)
+
 
                 val_loss_meter.reset()
                 running_metrics_val.reset()
@@ -229,4 +235,9 @@ if __name__ == "__main__":
     logger = get_logger(logdir)
     logger.info("Let the games begin")
 
-    train(cfg, writer, logger)
+    statslogger = logging.getLogger("statslogger")
+    fh = logging.FileHandler(os.path.join(logdir, "stats"))
+    statslogger.addHandler(fh)
+    statslogger.setLevel(logging.INFO)
+
+    train(cfg, writer, logger, statslogger)
