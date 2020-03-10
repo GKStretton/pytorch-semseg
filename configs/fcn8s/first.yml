@@ -9,11 +9,11 @@ data:
     path: /home2/bpch28/datasets/rootset
     mode: multi
 training:
-    train_iters: 300000
+    train_iters: 215600
     batch_size: 1
-    val_interval: 2000
+    val_interval: 2156
     n_workers: 1
-    print_interval: 50
+    print_interval: 100
     optimizer:
         name: 'sgd'
         lr: 1.0e-10

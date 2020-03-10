@@ -25,6 +25,7 @@ def validate(cfg, args):
 
     loader = data_loader(
         data_path,
+        mode=cfg["data"]["mode"],
         split=cfg["data"]["val_split"],
         is_transform=True,
         img_size=(cfg["data"]["img_rows"], cfg["data"]["img_cols"]),

@@ -1,0 +1,26 @@
+model:
+    arch: fcn8s
+data:
+    dataset: root
+    train_split: train
+    val_split: test
+    img_rows: 'same'
+    img_cols: 'same'
+    path: /home2/bpch28/datasets/rootset
+    mode: multi
+training:
+    train_iters: 215600
+    batch_size: 1
+    val_interval: 2156
+    n_workers: 1
+    print_interval: 100
+    optimizer:
+        name: 'sgd'
+        lr: 1.0e-4
+        weight_decay: 0.0016
+        momentum: 0.9
+    loss:
+        name: 'cross_entropy'
+        size_average: False
+    lr_schedule:
+    resume: fcn8s_root.pkl
