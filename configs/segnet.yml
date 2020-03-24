@@ -1,5 +1,5 @@
 model:
-    arch: fcn8s
+    arch: fcn16s
 data:
     dataset: root
     train_split: train
@@ -16,11 +16,11 @@ training:
     print_interval: 100
     optimizer:
         name: 'sgd'
-        lr: 1.0e-9
+        lr: 1.0e-8
         weight_decay: 0.005
-        momentum: 0.99
+        momentum: 0.9
     loss:
         name: 'cross_entropy'
         size_average: False
     lr_schedule:
-    resume: fcn8s_root.pkl
+    resume: segnet.pkl
