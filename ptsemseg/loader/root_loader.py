@@ -28,7 +28,7 @@ class rootLoader(data.Dataset):
 
     def get_files(self, root, split):
         files = []
-        with open(root + "/" + split, 'r') as f:
+        with open(split + "_split", 'r') as f:
             line = f.readline()
             while len(line) >= 5:
                 files.append(line[:-1])
