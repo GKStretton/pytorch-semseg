@@ -1,7 +1,8 @@
 test.html
-results
-models
-runs
+results/
+models/
+runs/
+output/
 
 # Slurm
 *.slurm
