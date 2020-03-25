@@ -1,4 +1,5 @@
 #pydensecrf - install manually
+git+https://github.com/lucasb-eyer/pydensecrf.git
 matplotlib
 numpy
 scipy==1.2.0

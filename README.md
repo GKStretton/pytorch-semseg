@@ -1,3 +1,54 @@
+# 3rd year project fork
+### Initialisation
+To create virtual environment and install dependencies:
+```
+./init
+```
+
+### Dataset
+Root dataset with structure
+```
+rootset
+↪ combined
+↪ images
+⋮
+```
+can be placed anywhere, edit "path" in the config files to point to "rootset".
+
+### Configuration
+Config files in `config/`
+
+Adjust hyperparameters as needed
+
+### Training
+Ensure venv is being used with `source env/bin/activate`. Maybe source /etc/profile, slurm requires this.
+
+Train with desired config file
+```
+python train.py --config configs/fcn8s.yml
+```
+
+Log files and model go to `runs/cfg_name/n/`
+
+### Testing
+This runs the model on specified test images and outputs to `output/`
+
+Specify model to use, images to run test on. Test images specified in `test_images` file, make sure the test selection doesn't include any training images.
+```
+python test.py --dataset root --model-path=runs/fcn8s/n/fcn8s_root_best_model.pkl --imgs test_images
+```
+
+### Validate
+This is done throughout training, I haven't used validate.py for a while so it probably doesn't work. Just look through the log files or `stats` file I've been outputting.
+
+### Other points
+* Dataloader is at `ptsemseg/loaders/root_loader.py`
+
+---
+&nbsp;
+&nbsp;
+---
+
 # pytorch-semseg
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/meetshah1995/pytorch-semseg/blob/master/LICENSE)
