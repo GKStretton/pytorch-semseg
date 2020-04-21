@@ -1,7 +1,9 @@
-# models
-models
-output
 *.png
+test.html
+results/
+models/
+runs/
+output/
 
 # Slurm
 *.slurm
