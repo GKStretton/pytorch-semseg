@@ -1,5 +1,7 @@
 # models
 models
+output
+*.png
 
 # Slurm
 *.slurm

@@ -26,10 +26,10 @@ from tensorboardX import SummaryWriter
 def train(cfg, writer, logger, statslogger):
 
     # Setup seeds
-    torch.manual_seed(cfg.get("seed", 1337))
-    torch.cuda.manual_seed(cfg.get("seed", 1337))
-    np.random.seed(cfg.get("seed", 1337))
-    random.seed(cfg.get("seed", 1337))
+    torch.manual_seed(cfg.get("seed", 1336))
+    torch.cuda.manual_seed(cfg.get("seed", 1336))
+    np.random.seed(cfg.get("seed", 1336))
+    random.seed(cfg.get("seed", 1336))
 
     # Setup device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -121,6 +121,11 @@ def train(cfg, writer, logger, statslogger):
     while i <= cfg["training"]["train_iters"] and flag:
         for (images, labels) in trainloader:
             i += 1
+
+            print(images.shape)
+            if images.shape[2] * images.shape[3] > 1600000:
+                continue
+
             start_ts = time.time()
             scheduler.step()
             model.train()
@@ -147,6 +152,7 @@ def train(cfg, writer, logger, statslogger):
                 )
 
                 print(print_str)
+                statslogger.info("%d, %.4f"% (i + 1, loss.item()))
                 logger.info(print_str)
                 writer.add_scalar("loss/train_loss", loss.item(), i + 1)
                 time_meter.reset()
@@ -171,18 +177,14 @@ def train(cfg, writer, logger, statslogger):
 
                 writer.add_scalar("loss/val_loss", val_loss_meter.avg, i + 1)
                 logger.info("Iter %d Loss: %.4f" % (i + 1, val_loss_meter.avg))
-                statslogger.info("")
-                statslogger.info("Iter %d"% (i+1))
 
                 score, class_iou = running_metrics_val.get_scores()
                 for k, v in score.items():
                     print(k, v)
-                    statslogger.info("{}:{}".format(k,v))
                     logger.info("{}: {}".format(k, v))
                     writer.add_scalar("val_metrics/{}".format(k), v, i + 1)
 
                 for k, v in class_iou.items():
-                    statslogger.info("{}:{}".format(k,v))
                     logger.info("{}: {}".format(k, v))
                     writer.add_scalar("val_metrics/cls_{}".format(k), v, i + 1)
 
