@@ -7,7 +7,7 @@ data:
     img_rows: 'same'
     img_cols: 'same'
     path: /home2/bpch28/datasets/rootset
-    mode: foreback
+    mode: multi
 training:
     train_iters: 215600
     batch_size: 1
@@ -16,9 +16,9 @@ training:
     print_interval: 100
     optimizer:
         name: 'sgd'
-        lr: 1.0e-6
-        weight_decay: 0.005
-        momentum: 0.9
+        lr: 1.0e-10
+        weight_decay: 0.0005
+        momentum: 0.99
     loss:
         name: 'cross_entropy'
         size_average: False
