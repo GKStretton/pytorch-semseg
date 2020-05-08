@@ -20,7 +20,7 @@ except:
 
 def test(args):
 
-    base = "/home2/bpch28/datasets/rootset"
+    base = "/home/greg/datasets/rootset"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model_file_name = os.path.split(args.model_path)[1]
@@ -38,7 +38,7 @@ def test(args):
         img = misc.imread(base + "/images/" + img_path)
 
         data_loader = get_loader(args.dataset)
-        loader = data_loader(root=base, mode="multi", is_transform=True, img_norm=args.img_norm, test_mode=True)
+        loader = data_loader(root=base, mode=args.mode, is_transform=True, img_norm=args.img_norm, test_mode=True)
         n_classes = loader.n_classes
         print(n_classes, "CLASSES")
 
@@ -65,7 +65,7 @@ def test(args):
         # Setup Model
         model_dict = {"arch": model_name}
         model = get_model(model_dict, n_classes, version=args.dataset)
-        state = convert_state_dict(torch.load(args.model_path)["model_state"])
+        state = convert_state_dict(torch.load(args.model_path, map_location='cpu')["model_state"])
         model.load_state_dict(state)
         model.eval()
         model.to(device)
@@ -118,6 +118,13 @@ if __name__ == "__main__":
         type=str,
         default="fcn8s_pascal_1_26.pkl",
         help="Path to the saved model",
+    )
+    parser.add_argument(
+        "--mode",
+        nargs="?",
+        type=str,
+        default="multi",
+        help="mode: foreback/multi",
     )
     parser.add_argument(
         "--dataset",

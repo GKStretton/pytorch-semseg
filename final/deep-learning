@@ -1,0 +1,3 @@
+cd ..
+source env/bin/activate
+python singleTest.py --dataset root --mode $1 --model_path=../../models/$1/fcn8s_root_best_model.pkl --image $2

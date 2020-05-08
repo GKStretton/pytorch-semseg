@@ -1,4 +1,6 @@
 # 3rd year project fork
+This is a fork of an existing fully convolutional network solution, though a custom data loader and much additional code has been written to adapt to root segmentation.
+
 ### Initialisation
 To create virtual environment and install dependencies:
 ```
@@ -31,6 +33,15 @@ python train.py --config configs/fcn8s.yml
 Log files and model go to `runs/cfg_name/n/`
 
 ### Testing
+
+Again, be sure the virtual environment is in use.
+
+Single tests can be carried out with the following command
+```
+python singleTest.py --dataset root --mode [foreback/multi] --model_path=path-to-model --image [image number e.g. 0000]
+```
+
+Batch testing is also available:
 This runs the model on specified test images and outputs to `output/`
 
 Specify model to use, images to run test on. Test images specified in `test_images` file, make sure the test selection doesn't include any training images.

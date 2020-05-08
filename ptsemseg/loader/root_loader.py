@@ -36,7 +36,7 @@ class rootLoader(data.Dataset):
         return files
 
     def decode_segmap(self, label_mask):
-        label_colours = np.asarray([[0, 0, 0], [0, 255, 0], [255, 0, 0], [0, 0, 255], [255, 255, 255]])
+        label_colours = np.asarray([[0, 0, 0], [255, 255, 255], [255, 0, 0], [0, 0, 255], [0, 255, 0]])
         r = label_mask.copy()
         g = label_mask.copy()
         b = label_mask.copy()

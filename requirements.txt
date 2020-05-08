@@ -8,3 +8,6 @@ torchvision==0.2.0
 tqdm
 protobuf
 tensorboardX
+opencv-python
+scikit-image
+Pillow
