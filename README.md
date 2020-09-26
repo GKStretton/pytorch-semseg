@@ -1,5 +1,5 @@
 # 3rd year project fork
-This is a fork of an existing fully convolutional network solution, though a custom data loader and much additional code has been written to adapt to root segmentation.
+This project applys semantic segmentation techniques to a dataset of plant root images, with the aim being to segment root features (primary/lateral roots, seeds and tips) from the background.
 
 ### Initialisation
 To create virtual environment and install dependencies:
