@@ -2,7 +2,7 @@
 git+https://github.com/lucasb-eyer/pydensecrf.git
 matplotlib
 numpy
-scipy==1.2.0
+scipy==1.10.0
 torch
 torchvision==0.2.0
 tqdm
